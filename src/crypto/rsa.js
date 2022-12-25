@@ -27,8 +27,6 @@ async function loadPrivateKey(pem, alg) {
     const pemHeader = "-----BEGIN PRIVATE KEY-----";
     const pemFooter = "-----END PRIVATE KEY-----\n";
     const pemContents = pem.substring(pemHeader.length, pem.length - pemFooter.length);
-    console.log(pemContents);
-    console.log(alg);
     // base64 decode the string to get the binary data
     const binaryDerString = window.atob(pemContents);
     // convert from a binary string to an ArrayBuffer
@@ -47,12 +45,7 @@ async function loadPrivateKey(pem, alg) {
 }
 
 async function encryptWithOAEP(publicKey, hash, plainData) {
-    let key;
-    try {
-        key = await loadPublicKey(publicKey, hash);
-    } catch(e) {
-        console.log('encryptWithOAEP error: ', e);
-    }
+    const key = await loadPublicKey(publicKey, hash);
     return await window.crypto.subtle.encrypt(
         {
             name: 'RSA-OAEP',
