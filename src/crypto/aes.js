@@ -1,7 +1,15 @@
 
 import { fromHex, toHex } from './utils';
 
+const AES_128_KEY_SIZE = 16;
+const AES_192_KEY_SIZE = 24;
+const AES_256_KEY_SIZE = 32;
+
 async function importKeyAES256(rawKey) {
+    if (rawKey.length !== AES_256_KEY_SIZE) {
+        throw new Error(`invalid key length, AES 256 key length should be ${AES_256_KEY_SIZE} bytes length`);
+    }
+
     const encoder = new TextEncoder();
     return await crypto.subtle.importKey(
         "raw", 
@@ -16,9 +24,7 @@ async function importKeyAES256(rawKey) {
 }
 
 export async function encryptWithAes256Gcm(key, data) {
-    if (key.length < 32) {
-        throw new Error(`invalid key length, AES 256 key length should be 32 bytes length`);
-    }
+    const importedKey = await importKeyAES256(key);
 
     const encoder = new TextEncoder();
     const encoded = encoder.encode(data);
@@ -29,8 +35,6 @@ export async function encryptWithAes256Gcm(key, data) {
         name: "AES-GCM",
         iv: iv,
     };
-
-    const importedKey = await importKeyAES256(key);
 
     const cipherData = await crypto.subtle.encrypt(
         alg,
@@ -47,17 +51,13 @@ export async function encryptWithAes256Gcm(key, data) {
 }
 
 export async function decryptWithAes256Gcm(key, encryptedData) {
-    if (key.length < 32) {
-        throw new Error(`invalid key length, AES 256 key length should be 32 bytes length`);
-    }
+    const importedKey = await importKeyAES256(key);
 
     const iv = fromHex(encryptedData.slice(0,24));
     const alg = {
         name: "AES-GCM",
         iv: iv,
     };
-
-    const importedKey = await importKeyAES256(key);
 
     return await crypto.subtle.decrypt(
         alg, 
