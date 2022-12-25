@@ -10,6 +10,12 @@
 - Python https://github.com/telkomdev/pycrypsi
 - Golang https://github.com/telkomdev/go-crypsi
 
+### Running
+```
+$ npm install
+$ npm start
+```
+
 ### Golang Server side RSA and AES code example
 ```go
 package main
