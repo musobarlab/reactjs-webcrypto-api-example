@@ -1,4 +1,4 @@
-export * from './aes';
-export * from './digest';
-export * from './rsa';
-export * from './utils';
+export * as aes from './aes';
+export * as digest from './digest';
+export * as rsa from './rsa';
+export * as utils from './utils';

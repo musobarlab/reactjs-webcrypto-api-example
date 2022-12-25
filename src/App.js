@@ -1,18 +1,8 @@
 import { 
-  encryptWithAes256Gcm, 
-  decryptWithAes256Gcm,
-  encryptWithOAEPSha256,
-  decryptWithOAEPSha256,
-  fromHex,
-  toHex,
-  encryptWithOAEPSha1,
-  decryptWithOAEPSha1,
-  encryptWithOAEPSha384,
-  decryptWithOAEPSha384,
-  encryptWithOAEPSha512,
-  decryptWithOAEPSha512,
-  sha1DigestHex,
-  sha512DigestHex
+  aes,
+  digest,
+  rsa,
+  utils
 } from './crypto';
 import { useState } from 'react';
 
@@ -35,15 +25,24 @@ function App() {
     const encoder = new TextEncoder();
     const decoder = new TextDecoder();
 
-    // const encryptedPassword = await encryptWithAes256Gcm(key256, password);
-    const encryptedPassword = await encryptWithOAEPSha256(publicKey, encoder.encode(password));
-    setEncryptedPassword(toHex(new Uint8Array(encryptedPassword)));
+    // AES Encryption
+    // const encryptedPassword = await aes.encryptWithAes256Gcm(key256, password);
+    // setEncryptedPassword(encryptedPassword);
 
-    // const decryptedPassword = await decryptWithAes256Gcm(key256, encryptedPassword);
-    const decryptedPassword = await decryptWithOAEPSha256(privateKey, fromHex(toHex(new Uint8Array(encryptedPassword))));
-    console.log(decryptedPassword);
+    // RSA Encryption
+    const encryptedPassword = await rsa.encryptWithOAEPSha256(publicKey, encoder.encode(password));
+    setEncryptedPassword(utils.toHex(new Uint8Array(encryptedPassword)));
+
+    // AES Decryption
+    // const decryptedPassword = await aes.decryptWithAes256Gcm(key256, encryptedPassword);
+    // setDecryptedPassword(decoder.decode(decryptedPassword));
+
+    // RSA Decryption
+    const decryptedPassword = await rsa.decryptWithOAEPSha256(privateKey, utils.fromHex(utils.toHex(new Uint8Array(encryptedPassword))));
     setDecryptedPassword(decoder.decode(decryptedPassword));
-    console.log(await sha512DigestHex('wuriyanto'));
+
+    // Digest
+    console.log(await digest.sha512DigestHex('wuriyanto'));
     
   }; 
 
