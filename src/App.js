@@ -43,6 +43,7 @@ function App() {
 
     // Digest
     console.log(await digest.sha512DigestHex('wuriyanto'));
+    console.log(await digest.sha512DigestHex(new Uint8Array([0x77, 0x75, 0x72, 0x69, 0x79, 0x61, 0x6E, 0x74, 0x6F])));
     
   }; 
 
