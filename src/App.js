@@ -18,6 +18,10 @@ function App() {
   const [encryptedPassword, setEncryptedPassword] = useState('');
   const [decryptedPassword, setDecryptedPassword] = useState('');
 
+  const [data, setData] = useState('');
+  const [signature, setSignature] = useState('');
+  const [signatureValid, setSignatureValid] = useState(false);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setUsernameOut(username);
@@ -47,6 +51,28 @@ function App() {
     
   }; 
 
+  const handleSubmitSignData = async (e) => {
+    e.preventDefault();
+
+    const encoder = new TextEncoder();
+    const decoder = new TextDecoder();
+    console.log(data)
+    
+    const signatureArrayBuff = await rsa.signWithPssSha512(privateKey, encoder.encode(data));
+    setSignature(utils.toHex(new Uint8Array(signatureArrayBuff)));
+  };
+
+  const handleSubmitVerifySignature = async (e) => {
+    e.preventDefault();
+
+    const encoder = new TextEncoder();
+    const decoder = new TextDecoder();
+    console.log(data)
+    
+    const valid = await rsa.verifySignatureWithPssSha512(publicKey, utils.fromHex(signature), encoder.encode(data));
+    console.log(valid);
+    setSignatureValid(valid);
+  };
   return (
     <div>
       <header>
@@ -83,6 +109,54 @@ function App() {
           <h5>Username: {usernameOut}</h5>
           <h5>Password: {encryptedPassword}</h5>
           <h5>Decrypted Pass: {decryptedPassword}</h5>
+        </div>
+      </form>
+
+      <header>
+        <h3>Sign Data</h3>
+      </header>
+      <form>
+        <div>
+          <label>Data</label>
+          <input 
+            type="text" 
+            id="data"
+            value={data}
+            onChange={(e) => setData(e.target.value)}
+            required={true}
+            />
+        </div>
+
+        <div>
+          <button onClick={handleSubmitSignData}>Sign Data</button>
+        </div>
+
+        <div>
+          <h5>Signature: {signature}</h5>
+        </div>
+      </form>
+
+      <header>
+        <h3>Verify Signature</h3>
+      </header>
+      <form>
+        <div>
+          <label>Data</label>
+          <input 
+            type="text" 
+            id="signature"
+            value={signature}
+            onChange={(e) => setSignature(e.target.value)}
+            required={true}
+            />
+        </div>
+
+        <div>
+          <button onClick={handleSubmitVerifySignature}>Verify</button>
+        </div>
+
+        <div>
+          <h5>Signature valid ? : {signatureValid ? 'valid':'invalid'}</h5>
         </div>
       </form>
     </div>

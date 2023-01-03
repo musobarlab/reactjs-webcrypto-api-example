@@ -1,6 +1,6 @@
-import { fromHex, toHex, str2ab, DIGEST } from './utils';
+import { fromHex, toHex, str2ab, DIGEST, DIGEST_SALT_LENGTH } from './utils';
 
-async function loadPublicKey(pem, alg) {
+function loadPublicKey(pem) {
     const pemHeader = "-----BEGIN PUBLIC KEY-----";
     const pemFooter = "-----END PUBLIC KEY-----\n";
     const pemContents = pem.substring(pemHeader.length, pem.length - pemFooter.length);
@@ -8,6 +8,23 @@ async function loadPublicKey(pem, alg) {
     const binaryDerString = window.atob(pemContents);
     // convert from a binary string to an ArrayBuffer
     const binaryDer = str2ab(binaryDerString);
+    return binaryDer;
+}
+
+function loadPrivateKey(pem) {
+    // fetch the part of the PEM string between header and footer
+    const pemHeader = "-----BEGIN PRIVATE KEY-----";
+    const pemFooter = "-----END PRIVATE KEY-----\n";
+    const pemContents = pem.substring(pemHeader.length, pem.length - pemFooter.length);
+    // base64 decode the string to get the binary data
+    const binaryDerString = window.atob(pemContents);
+    // convert from a binary string to an ArrayBuffer
+    const binaryDer = str2ab(binaryDerString);
+    return binaryDer;
+}
+
+async function loadPublicKeyForEncryption(pem, alg) {
+    const binaryDer = loadPublicKey(pem);
 
     return await crypto.subtle.importKey(
         'spki', 
@@ -21,16 +38,24 @@ async function loadPublicKey(pem, alg) {
     );
 }
 
+async function loadPublicKeyForVerifySignature(pem, alg) {
+    const binaryDer = loadPublicKey(pem);
+
+    return await crypto.subtle.importKey(
+        'spki', 
+        binaryDer, 
+        {
+            name: 'RSA-PSS',
+            hash: alg,
+        }, 
+        true, 
+        ['verify']
+    );
+}
+
 //  format should be PKCS8
-async function loadPrivateKey(pem, alg) {
-    // fetch the part of the PEM string between header and footer
-    const pemHeader = "-----BEGIN PRIVATE KEY-----";
-    const pemFooter = "-----END PRIVATE KEY-----\n";
-    const pemContents = pem.substring(pemHeader.length, pem.length - pemFooter.length);
-    // base64 decode the string to get the binary data
-    const binaryDerString = window.atob(pemContents);
-    // convert from a binary string to an ArrayBuffer
-    const binaryDer = str2ab(binaryDerString);
+async function loadPrivateKeyForEncryption(pem, alg) {
+    const binaryDer = loadPrivateKey(pem)
 
     return await window.crypto.subtle.importKey(
         'pkcs8',
@@ -44,8 +69,24 @@ async function loadPrivateKey(pem, alg) {
     );
 }
 
+//  format should be PKCS8
+async function loadPrivateKeyForSigning(pem, alg) {
+    const binaryDer = loadPrivateKey(pem)
+
+    return await window.crypto.subtle.importKey(
+        'pkcs8',
+        binaryDer,
+        {
+            name: 'RSA-PSS',
+            hash: alg,
+        },
+        true,
+        ['sign']  
+    );
+}
+
 async function encryptWithOAEP(publicKey, hash, plainData) {
-    const key = await loadPublicKey(publicKey, hash);
+    const key = await loadPublicKeyForEncryption(publicKey, hash);
     return await window.crypto.subtle.encrypt(
         {
             name: 'RSA-OAEP',
@@ -57,7 +98,7 @@ async function encryptWithOAEP(publicKey, hash, plainData) {
 }
 
 async function decryptWithOAEP(privateKey, hash, encryptedData) {
-    const key = await loadPrivateKey(privateKey, hash);
+    const key = await loadPrivateKeyForEncryption(privateKey, hash);
     return await window.crypto.subtle.decrypt(
         {
             name: 'RSA-OAEP',
@@ -100,4 +141,65 @@ export function decryptWithOAEPSha384(privateKey, encryptedData) {
 
 export function decryptWithOAEPSha512(privateKey, encryptedData) {
     return decryptWithOAEP(privateKey, DIGEST['SHA-512'], encryptedData);
+}
+
+// digital signature
+
+// sign data with PSS and return a promise a promise that fulfills an array buffer containing the signature
+async function signWithPss(privateKey, hash, data) {
+    const key = await loadPrivateKeyForSigning(privateKey, hash);
+    return await window.crypto.subtle.sign(
+        {
+            name: 'RSA-PSS',
+            saltLength: DIGEST_SALT_LENGTH[hash]
+        },
+        key,
+        data,
+    );
+}
+
+// verify signature with PSS and return a Promise that fulfills with a boolean value: true if the signature is valid, false otherwise.
+async function verifySignatureWithPss(publicKey, signature, hash, data) {
+    const key = await loadPublicKeyForVerifySignature(publicKey, hash);
+    return await window.crypto.subtle.verify(
+        {
+            name: 'RSA-PSS',
+            saltLength: DIGEST_SALT_LENGTH[hash]
+        },
+        key,
+        signature,
+        data,
+    );
+}
+
+export function signWithPssSha1(privateKey, data) {
+    return signWithPss(privateKey, DIGEST['SHA-1'], data);
+}
+
+export function signWithPssSha256(privateKey, data) {
+    return signWithPss(privateKey, DIGEST['SHA-256'], data);
+}
+
+export function signWithPssSha384(privateKey, data) {
+    return signWithPss(privateKey, DIGEST['SHA-384'], data);
+}
+
+export function signWithPssSha512(privateKey, data) {
+    return signWithPss(privateKey, DIGEST['SHA-512'], data);
+}
+
+export function verifySignatureWithPssSha1(publicKey, signature, data) {
+    return verifySignatureWithPss(publicKey, signature, DIGEST['SHA-1'], data);
+}
+
+export function verifySignatureWithPssSha256(publicKey, signature, data) {
+    return verifySignatureWithPss(publicKey, signature, DIGEST['SHA-256'], data);
+}
+
+export function verifySignatureWithPssSha384(publicKey, signature, data) {
+    return verifySignatureWithPss(publicKey, signature, DIGEST['SHA-384'], data);
+}
+
+export function verifySignatureWithPssSha512(publicKey, signature, data) {
+    return verifySignatureWithPss(publicKey, signature, DIGEST['SHA-512'], data);
 }

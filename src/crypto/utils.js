@@ -65,3 +65,10 @@ export const DIGEST = {
     'SHA-384': 'SHA-384',
     'SHA-512': 'SHA-512'
 };
+
+export const DIGEST_SALT_LENGTH = {
+    'SHA-1': 20,
+    'SHA-256': 32,
+    'SHA-384': 48,
+    'SHA-512': 64
+};
