@@ -1,4 +1,3 @@
-
 import { fromHex, toHex } from './utils';
 
 const KEY_BYTE_SIZE = {
