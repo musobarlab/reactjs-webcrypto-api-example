@@ -3,7 +3,7 @@ import {
   digest,
   rsa,
   utils
-} from './crypto';
+} from './crypsi';
 import { useState } from 'react';
 
 var key256 = 'kJjG$qMCzbzqW6WWge2ZHFD777gjERHO';
