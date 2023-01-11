@@ -115,7 +115,7 @@ export function encryptWithAes128Cbc(key, data) {
     return encrypt(key, mode, data);
 }
 
-// not supported yet
+// not yet supported
 export function encryptWithAes192Cbc(key, data) {
     const mode = 'CBC';
     validateKeyAndMode(mode, key, 192);
@@ -135,7 +135,7 @@ export function decryptWithAes128Cbc(key, encryptedData) {
     return decrypt(key, mode, encryptedData);
 }
 
-// not supported yet
+// not yet supported
 export function decryptWithAes192Cbc(key, encryptedData) {
     const mode = 'CBC';
     validateKeyAndMode(mode, key, 192);
@@ -155,7 +155,7 @@ export function encryptWithAes128Gcm(key, data) {
     return encrypt(key, mode, data);
 }
 
-// not supported yet
+// not yet supported
 export function encryptWithAes192Gcm(key, data) {
     const mode = 'GCM';
     validateKeyAndMode(mode, key, 192);
@@ -175,7 +175,7 @@ export function decryptWithAes128Gcm(key, encryptedData) {
     return decrypt(key, mode, encryptedData);
 }
 
-// not supported yet
+// not yet supported
 export function decryptWithAes192Gcm(key, encryptedData) {
     const mode = 'GCM';
     validateKeyAndMode(mode, key, 192);
