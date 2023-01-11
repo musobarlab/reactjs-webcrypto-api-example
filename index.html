@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="./dist/crypsi.min.js"></script>
+    </head>
+    <body>
+
+    <h2>Crypsi</h2>
+
+    <p id="demo"></p>
+
+    <script>
+        var key256 = 'kJjG$qMCzbzqW6WWge2ZHFD777gjERHO';
+       
+        crypsi.digest.sha512DigestHex('wuriyanto').then(function(r) {
+            console.log(r);
+        });
+
+       var decoder = new TextDecoder();
+
+       crypsi.aes.encryptWithAes256Gcm(key256, 'wuriyanto').then(function(encryptedData) {
+            console.log(encryptedData);
+            crypsi.aes.decryptWithAes256Gcm(key256, encryptedData).then(function(decryptedData) {
+                console.log(decoder.decode(decryptedData));
+            })
+        });
+
+        document.getElementById("demo").innerHTML = 'xxx';
+    </script>
+
+    </body>
+</html>
